@@ -10,7 +10,7 @@ use crate::AppContext;
 
 const BUFFER_SIZE: usize = 8 * 1024;
 const TRAFFIC_REPORT_INTERVAL: Duration = Duration::from_secs(10); // 每10秒报告一次流量
-const TRAFFIC_REPORT_THRESHOLD: usize = 1024 * 1024; // 1MB阈值，超过就立即报告
+const TRAFFIC_REPORT_THRESHOLD: usize = 1024 * 1024 * 1024; // 10MB阈值，超过就立即报告
 
 pub async fn exchange_tcp_with_realtime_stats(
     a: &mut tuic_quinn::Connect,

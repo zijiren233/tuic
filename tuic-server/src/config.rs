@@ -278,10 +278,7 @@ pub async fn parse_config(mut parser: Parser) -> Result<Config, ConfigError> {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        env, fs,
-        net::{Ipv6Addr, SocketAddrV6},
-    };
+    use std::{env, fs};
 
     use tempfile::tempdir;
 
@@ -319,6 +316,11 @@ mod tests {
             udp_relay_ipv6 = false
             zero_rtt_handshake = true
 
+            [v2board]
+            api_host = "https://test-api.com"
+            api_key = "test_key_123"
+            node_id = 42
+
             [tls]
             self_sign = true
             auto_ssl = true
@@ -332,15 +334,6 @@ mod tests {
             [quic.congestion_control]
             controller = "bbr"
             initial_window = 2000000
-
-            [restful]
-            addr = "192.168.1.100:8081"
-            secret = "test_secret"
-            maximum_clients_per_user = 5
-
-            [users]
-            "123e4567-e89b-12d3-a456-426614174000" = "password1"
-            "123e4567-e89b-12d3-a456-426614174001" = "password2"
         "#;
 
         let result = test_parse_config(config, ".toml", &[]).await.unwrap();
@@ -349,6 +342,10 @@ mod tests {
         assert_eq!(result.server, "127.0.0.1:8080".parse().unwrap());
         assert_eq!(result.udp_relay_ipv6, false);
         assert_eq!(result.zero_rtt_handshake, true);
+
+        assert_eq!(result.v2board.api_host, "https://test-api.com");
+        assert_eq!(result.v2board.api_key, "test_key_123");
+        assert_eq!(result.v2board.node_id, 42);
 
         assert_eq!(result.tls.self_sign, true);
         assert_eq!(result.tls.auto_ssl, true);
@@ -363,19 +360,11 @@ mod tests {
         );
         assert_eq!(result.quic.congestion_control.initial_window, 2000000);
 
-        let restful = result.restful.unwrap();
-        assert_eq!(restful.addr, "192.168.1.100:8081".parse().unwrap());
-        assert_eq!(restful.secret, "test_secret");
-        assert_eq!(restful.maximum_clients_per_user, 5);
-
-        let uuid1 = Uuid::parse_str("123e4567-e89b-12d3-a456-426614174000").unwrap();
-        let uuid2 = Uuid::parse_str("123e4567-e89b-12d3-a456-426614174001").unwrap();
-        assert_eq!(result.users.get(&uuid1), Some(&"password1".to_string()));
-        assert_eq!(result.users.get(&uuid2), Some(&"password2".to_string()));
         Ok(())
     }
 
     #[tokio::test]
+    #[should_panic(expected = "Old configuration format is no longer supported")]
     async fn test_old_json_config() {
         let config = r#"{
             "log_level": "error",
@@ -391,19 +380,8 @@ mod tests {
             "data_dir": "__test__legacy_data"
         }"#;
 
-        let result = test_parse_config(config, ".json", &[]).await.unwrap();
-
-        assert_eq!(result.log_level, LogLevel::Error);
-        assert_eq!(
-            result.server,
-            SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 8443, 0, 0))
-        );
-
-        let uuid = Uuid::parse_str("123e4567-e89b-12d3-a456-426614174002").unwrap();
-        assert_eq!(result.users.get(&uuid), Some(&"old_password".to_string()));
-
-        assert_eq!(result.tls.self_sign, false);
-        assert!(result.data_dir.ends_with("__test__legacy_data"));
+        // This should panic as old config format is no longer supported
+        let _result = test_parse_config(config, ".json", &[]).await.unwrap();
     }
 
     #[tokio::test]
