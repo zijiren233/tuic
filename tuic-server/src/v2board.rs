@@ -37,7 +37,6 @@ pub struct TrafficStats {
     pub rx: u64, // bytes
 }
 
-
 pub struct V2BoardProvider {
     config: V2BoardConfig,
     client: Client,
@@ -79,7 +78,10 @@ impl V2BoardProvider {
     pub async fn start_user_sync(&self) {
         let provider = self.clone();
         tokio::spawn(async move {
-            info!("Starting user synchronization with interval: {:?}", provider.config.update_interval);
+            info!(
+                "Starting user synchronization with interval: {:?}",
+                provider.config.update_interval
+            );
 
             let mut interval = time::interval(provider.config.update_interval);
 
@@ -102,11 +104,14 @@ impl V2BoardProvider {
                             *users_lock = user_map;
                         }
 
-                        debug!("Updated user list with {} users", provider.users.read().unwrap().len());
-                    }
+                        debug!(
+                            "Updated user list with {} users",
+                            provider.users.read().unwrap().len()
+                        );
+                    },
                     Err(e) => {
                         error!("Failed to fetch users: {}", e);
-                    }
+                    },
                 }
             }
         });
@@ -115,7 +120,10 @@ impl V2BoardProvider {
     pub async fn start_traffic_push(&self) {
         let provider = self.clone();
         tokio::spawn(async move {
-            info!("Starting traffic push with interval: {:?}", provider.config.push_interval);
+            info!(
+                "Starting traffic push with interval: {:?}",
+                provider.config.push_interval
+            );
 
             let mut interval = time::interval(provider.config.push_interval);
 
@@ -161,18 +169,16 @@ impl V2BoardProvider {
             self.config.api_host, self.config.api_key, self.config.node_id
         );
 
-        let response = self.client
-            .post(&url)
-            .json(&push_data)
-            .send()
-            .await?;
+        let response = self.client.post(&url).json(&push_data).send().await?;
 
         if !response.status().is_success() {
             // Restore stats on failure
             let mut stats_lock = self.traffic_stats.write().unwrap();
             for (user_id, traffic) in push_data {
                 if let Ok(id) = user_id.parse::<u32>() {
-                    let stats = stats_lock.entry(id).or_insert(TrafficStats { tx: 0, rx: 0 });
+                    let stats = stats_lock
+                        .entry(id)
+                        .or_insert(TrafficStats { tx: 0, rx: 0 });
                     stats.tx += traffic[0] * 1024;
                     stats.rx += traffic[1] * 1024;
                 }
@@ -180,10 +186,12 @@ impl V2BoardProvider {
             return Err(format!("HTTP error: {}", response.status()).into());
         }
 
-        debug!("Successfully pushed traffic data for {} users", push_data.len());
+        debug!(
+            "Successfully pushed traffic data for {} users",
+            push_data.len()
+        );
         Ok(())
     }
-
 
     pub fn authenticate(&self, uuid: &Uuid) -> bool {
         let users = self.users.read().unwrap();
@@ -198,7 +206,9 @@ impl V2BoardProvider {
     pub fn log_traffic(&self, uuid: &Uuid, tx: u64, rx: u64) -> bool {
         if let Some(user) = self.get_user(uuid) {
             let mut stats_lock = self.traffic_stats.write().unwrap();
-            let stats = stats_lock.entry(user.id).or_insert(TrafficStats { tx: 0, rx: 0 });
+            let stats = stats_lock
+                .entry(user.id)
+                .or_insert(TrafficStats { tx: 0, rx: 0 });
             stats.tx += tx;
             stats.rx += rx;
             true

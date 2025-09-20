@@ -50,11 +50,11 @@ impl Connection {
                                 s.set_nodelay(true)?;
                                 stream = Some(s);
                                 break;
-                            }
+                            },
                             Err(err) => last_err = Some(err),
                         }
                     }
-                }
+                },
                 Err(err) => last_err = Some(err),
             }
 
@@ -71,8 +71,9 @@ impl Connection {
                     &mut conn,
                     &mut stream,
                     self.ctx.clone(),
-                    uuid
-                ).await;
+                    uuid,
+                )
+                .await;
 
                 if err.is_some() {
                     _ = conn.reset(ERROR_CODE);
@@ -96,7 +97,7 @@ impl Connection {
         };
 
         match process.await {
-            Ok(()) => {}
+            Ok(()) => {},
             Err(err) => warn!(
                 "[{id:#010x}] [{addr}] [{user}] [TCP] {target_addr}: {err}",
                 id = self.id(),
@@ -136,7 +137,7 @@ impl Connection {
                     frag_id = frag_id + 1,
                 );
                 return;
-            }
+            },
         };
 
         let process = async {
@@ -160,7 +161,7 @@ impl Connection {
                         let session = UdpSession::new(self.ctx.clone(), self.clone(), assoc_id)?;
                         entry.insert(session.clone());
                         session
-                    }
+                    },
                 },
             };
 

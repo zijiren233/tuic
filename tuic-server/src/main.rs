@@ -35,11 +35,11 @@ async fn main() -> eyre::Result<()> {
         Err(ConfigError::Version(msg) | ConfigError::Help(msg)) => {
             println!("{msg}");
             process::exit(0);
-        }
+        },
         Err(err) => {
             eprintln!("{err}");
             process::exit(1);
-        }
+        },
     };
 
     // Initialize V2Board provider (now required)
@@ -47,7 +47,10 @@ async fn main() -> eyre::Result<()> {
     provider.start_user_sync().await;
     provider.start_traffic_push().await;
 
-    let ctx = Arc::new(AppContext { cfg, v2board: Some(provider) });
+    let ctx = Arc::new(AppContext {
+        cfg,
+        v2board: Some(provider),
+    });
 
     let filter = tracing_subscriber::filter::Targets::new()
         .with_targets(vec![
@@ -73,7 +76,7 @@ async fn main() -> eyre::Result<()> {
             Err(err) => {
                 eprintln!("{err}");
                 process::exit(1);
-            }
+            },
         }
     });
     tokio::signal::ctrl_c()
