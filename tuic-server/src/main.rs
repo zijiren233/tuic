@@ -18,6 +18,7 @@ mod config;
 mod connection;
 mod error;
 mod io;
+mod old_config;
 mod server;
 mod tls;
 mod utils;
