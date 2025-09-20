@@ -5,10 +5,10 @@ name: CI
 #--------------------------------------------------
 on:
   push:
-    tags: ["v*"]
-    branches: ["main"]
+    tags: [ "v*" ]
+    branches: [ "*" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "*" ]
 
 #--------------------------------------------------
 # Concurrency Control
