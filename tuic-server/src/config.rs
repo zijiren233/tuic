@@ -202,7 +202,6 @@ pub struct CongestionControlConfig {
     pub initial_window: u64,
 }
 
-
 #[derive(Deserialize, Serialize, Educe, Clone)]
 #[educe(Default)]
 #[serde(deny_unknown_fields)]
@@ -259,7 +258,10 @@ impl Config {
 /// TODO remove in 2.0.0 - Old config no longer supported with V2Board
 impl From<OldConfig> for Config {
     fn from(_value: OldConfig) -> Self {
-        panic!("Old configuration format is no longer supported. Please configure V2Board authentication.")
+        panic!(
+            "Old configuration format is no longer supported. Please configure V2Board \
+             authentication."
+        )
     }
 }
 
@@ -300,20 +302,20 @@ pub async fn parse_config(mut parser: Parser) -> Result<Config, ConfigError> {
                 } else {
                     return Err(ConfigError::Argument(arg.unexpected()));
                 }
-            }
+            },
             Arg::Short('v') | Arg::Long("version") => {
                 return Err(ConfigError::Version(env!("CARGO_PKG_VERSION")));
-            }
+            },
             Arg::Short('h') | Arg::Long("help") => {
                 return Err(ConfigError::Help(crate::old_config::HELP_MSG));
-            }
+            },
             Arg::Short('i') | Arg::Long("init") => {
                 warn!("Generating a example configuration to config.toml......");
                 let example = Config::full_example();
                 let example = toml::to_string_pretty(&example).unwrap();
                 tokio::fs::write("config.toml", example).await?;
                 return Err(ConfigError::Help("Done")); // TODO refactor
-            }
+            },
             _ => return Err(ConfigError::Argument(arg.unexpected())),
         }
     }

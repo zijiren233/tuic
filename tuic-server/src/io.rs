@@ -1,6 +1,9 @@
 use std::sync::Arc;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use tokio::time::{Duration, Instant};
+
+use tokio::{
+    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
+    time::{Duration, Instant},
+};
 use uuid::Uuid;
 
 use crate::AppContext;
@@ -163,7 +166,8 @@ pub async fn exchange_tcp_with_realtime_stats(
     if a2b_unreported > 0 || b2a_unreported > 0 {
         if let Some(v2board) = &ctx.v2board {
             v2board.log_traffic(&uuid, a2b_unreported as u64, b2a_unreported as u64);
-            // Note: at connection end, we don't need to check return value as connection is closing anyway
+            // Note: at connection end, we don't need to check return value as
+            // connection is closing anyway
         }
     }
 

@@ -255,7 +255,7 @@ impl Connection {
         };
 
         match process.await {
-            Ok(()) => {}
+            Ok(()) => {},
             Err(err) => warn!(
                 "[{id:#010x}] [{addr}] [{user}] [TCP] {target_addr}: {err}",
                 id = self.id(),
@@ -355,7 +355,7 @@ impl Connection {
                     frag_id = frag_id + 1,
                 );
                 return;
-            }
+            },
         };
 
         let process = async {
@@ -379,7 +379,7 @@ impl Connection {
                         let session = UdpSession::new(self.ctx.clone(), self.clone(), assoc_id)?;
                         entry.insert(session.clone());
                         session
-                    }
+                    },
                 },
             };
 
