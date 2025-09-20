@@ -22,6 +22,105 @@ Arguments:
     -i, --init              Generate a example configuration (config.toml)
 "#;
 
+#[derive(Deserialize)]
+pub struct OldConfig {
+    pub server: SocketAddr,
+
+    pub users: HashMap<Uuid, String>,
+
+    #[serde(default = "default::self_sign")]
+    pub self_sign: bool,
+
+    #[serde(default = "default::certificate")]
+    pub certificate: PathBuf,
+
+    #[serde(default = "default::private_key")]
+    pub private_key: PathBuf,
+
+    #[serde(default = "default::auto_ssl")]
+    pub auto_ssl: bool,
+
+    #[serde(default = "default::hostname")]
+    pub hostname: String,
+
+    #[serde(
+        default = "default::congestion_control",
+        deserialize_with = "deserialize_from_str"
+    )]
+    pub congestion_control: CongestionController,
+
+    #[serde(default = "default::alpn")]
+    pub alpn: Vec<String>,
+
+    #[serde(default = "default::udp_relay_ipv6")]
+    pub udp_relay_ipv6: bool,
+
+    #[serde(default = "default::zero_rtt_handshake")]
+    pub zero_rtt_handshake: bool,
+
+    pub dual_stack: Option<bool>,
+
+    #[serde(
+        default = "default::auth_timeout",
+        deserialize_with = "deserialize_duration"
+    )]
+    pub auth_timeout: Duration,
+
+    #[serde(
+        default = "default::task_negotiation_timeout",
+        deserialize_with = "deserialize_duration"
+    )]
+    pub task_negotiation_timeout: Duration,
+
+    #[serde(
+        default = "default::max_idle_time",
+        deserialize_with = "deserialize_duration"
+    )]
+    pub max_idle_time: Duration,
+
+    #[serde(default = "default::max_external_packet_size")]
+    pub max_external_packet_size: usize,
+
+    #[serde(default = "default::initial_window")]
+    pub initial_window: Option<u64>,
+
+    #[serde(default = "default::send_window")]
+    pub send_window: u64,
+
+    #[serde(default = "default::receive_window")]
+    pub receive_window: u32,
+
+    #[serde(default = "default::initial_mtu")]
+    pub initial_mtu: u16,
+
+    #[serde(default = "default::min_mtu")]
+    pub min_mtu: u16,
+
+    #[serde(default = "default::gso")]
+    pub gso: bool,
+
+    #[serde(default = "default::pmtu")]
+    pub pmtu: bool,
+
+    pub log_level: Option<LogLevel>,
+
+    #[serde(
+        default = "default::gc_interval",
+        deserialize_with = "deserialize_duration"
+    )]
+    pub gc_interval: Duration,
+
+    #[serde(
+        default = "default::gc_lifetime",
+        deserialize_with = "deserialize_duration"
+    )]
+    pub gc_lifetime: Duration,
+
+    pub restful_server: Option<SocketAddr>,
+
+    pub data_dir: PathBuf,
+}
+
 mod default {
     use std::{path::PathBuf, time::Duration};
 

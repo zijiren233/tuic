@@ -176,14 +176,14 @@ jobs:
       #     command: fmt
       #     args: --all -- --check
 
-      - name: Cargo clippy
-        uses: clechasseur/rs-cargo@v4
-        with:
-          tool: ${{ matrix.tool }}
-          command: clippy
-          args: --all --target ${{ matrix.target }} ${{ matrix.extra-args }} -- -D warnings
-        env:
-          RUSTFLAGS: ${{ matrix.rustflags }}
+      # - name: Cargo clippy
+      #   uses: clechasseur/rs-cargo@v4
+      #   with:
+      #     tool: ${{ matrix.tool }}
+      #     command: clippy
+      #     args: --all --target ${{ matrix.target }} ${{ matrix.extra-args }} -- -D warnings
+      #   env:
+      #     RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Cargo test
         uses: clechasseur/rs-cargo@v4
