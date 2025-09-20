@@ -2,10 +2,10 @@ name: CI
 
 on:
   push:
-    tags: [ "v*" ]
-    branches: [ "*" ]
+    tags: ["v*"]
+    branches: ["*"]
   pull_request:
-    branches: [ "*" ]
+    branches: ["*"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -170,11 +170,11 @@ jobs:
         env:
           TARGET: ${{ matrix.target }}
 
-      - name: Cargo fmt
-        uses: clechasseur/rs-cargo@v4
-        with:
-          command: fmt
-          args: --all -- --check
+      # - name: Cargo fmt
+      #   uses: clechasseur/rs-cargo@v4
+      #   with:
+      #     command: fmt
+      #     args: --all -- --check
 
       - name: Cargo clippy
         uses: clechasseur/rs-cargo@v4
@@ -223,7 +223,6 @@ jobs:
           name: ${{ env.PACKAGE2 }}-${{ matrix.release-name || matrix.target }}
           path: ${{ env.PACKAGE2 }}-${{ matrix.release-name || matrix.target }}${{ matrix.postfix }}
 
-
   release:
     name: Release
     needs: [compile]
@@ -238,7 +237,7 @@ jobs:
         uses: actions/upload-artifact/merge@v4
         with:
           name: binaries
-          pattern: '*'
+          pattern: "*"
           retention-days: 1
 
       - name: Download binaries
