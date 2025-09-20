@@ -1,4 +1,4 @@
-use std::{collections::HashMap, net::SocketAddr, path::PathBuf, time::Duration};
+use std::{net::SocketAddr, path::PathBuf, time::Duration};
 
 use educe::Educe;
 use figment::{
@@ -8,11 +8,11 @@ use figment::{
 use lexopt::{Arg, Parser};
 use serde::{Deserialize, Serialize};
 use tracing::{level_filters::LevelFilter, warn};
-use uuid::Uuid;
 
 use crate::{
     old_config::{ConfigError, OldConfig},
     utils::CongestionController,
+    v2board::V2BoardConfig,
 };
 
 #[derive(Deserialize, Serialize, Educe)]
@@ -22,14 +22,14 @@ pub struct Config {
     pub log_level: LogLevel,
     #[educe(Default(expression = "[::]:443".parse().unwrap()))]
     pub server: SocketAddr,
-    pub users: HashMap<Uuid, String>,
+
+    // V2Board configuration (required for authentication)
+    pub v2board: V2BoardApiConfig,
+
     pub tls: TlsConfig,
 
     #[educe(Default = "")]
     pub data_dir: PathBuf,
-
-    #[educe(Default = None)]
-    pub restful: Option<RestfulConfig>,
 
     pub quic: QuicConfig,
 
@@ -118,79 +118,53 @@ pub struct CongestionControlConfig {
     pub initial_window: u64,
 }
 
+
 #[derive(Deserialize, Serialize, Educe, Clone)]
 #[educe(Default)]
 #[serde(deny_unknown_fields)]
-pub struct RestfulConfig {
-    #[educe(Default(expression = "127.0.0.1:8443".parse().unwrap()))]
-    pub addr: SocketAddr,
-    #[educe(Default = "YOUR_SECRET_HERE")]
-    pub secret: String,
-    #[educe(Default = 0)]
-    pub maximum_clients_per_user: u64,
+pub struct V2BoardApiConfig {
+    #[educe(Default = "https://your-v2board-api.com")]
+    pub api_host: String,
+    #[educe(Default = "YOUR_API_KEY")]
+    pub api_key: String,
+    #[educe(Default = 1)]
+    pub node_id: u32,
+    #[educe(Default = 1024)] // 1MB threshold
+    pub traffic_threshold: u64,
+    #[serde(with = "humantime_serde")]
+    #[educe(Default(expression = Duration::from_secs(60)))]
+    pub update_interval: Duration,
+    #[serde(with = "humantime_serde")]
+    #[educe(Default(expression = Duration::from_secs(120)))]
+    pub push_interval: Duration,
+}
+
+impl From<V2BoardApiConfig> for V2BoardConfig {
+    fn from(config: V2BoardApiConfig) -> Self {
+        Self {
+            api_host: config.api_host,
+            api_key: config.api_key,
+            node_id: config.node_id,
+            traffic_threshold: config.traffic_threshold,
+            update_interval: config.update_interval,
+            push_interval: config.push_interval,
+        }
+    }
 }
 
 impl Config {
     pub fn full_example() -> Self {
         Self {
-            users: {
-                let mut users = HashMap::new();
-                users.insert(Uuid::new_v4(), "YOUR_USER_PASSWD_HERE".into());
-                users
-            },
-            restful: Some(RestfulConfig::default()),
+            v2board: V2BoardApiConfig::default(),
             ..Default::default()
         }
     }
 }
 
-/// TODO remove in 2.0.0
+/// TODO remove in 2.0.0 - Old config no longer supported with V2Board
 impl From<OldConfig> for Config {
-    fn from(value: OldConfig) -> Self {
-        Self {
-            server: value.server,
-            users: value.users,
-            tls: TlsConfig {
-                self_sign: value.self_sign,
-                certificate: value.certificate,
-                private_key: value.private_key,
-                alpn: value.alpn,
-                auto_ssl: value.auto_ssl,
-                hostname: value.hostname,
-            },
-            udp_relay_ipv6: value.udp_relay_ipv6,
-            zero_rtt_handshake: value.zero_rtt_handshake,
-            dual_stack: value.dual_stack.unwrap_or(true),
-            auth_timeout: value.auth_timeout,
-            task_negotiation_timeout: value.task_negotiation_timeout,
-            gc_interval: value.gc_interval,
-            gc_lifetime: value.gc_lifetime,
-            max_external_packet_size: value.max_external_packet_size,
-            restful: if value.restful_server.is_some() {
-                Some(RestfulConfig {
-                    addr: value.restful_server.unwrap(),
-                    ..Default::default()
-                })
-            } else {
-                None
-            },
-            log_level: value.log_level.unwrap_or_default(),
-            quic: QuicConfig {
-                congestion_control: CongestionControlConfig {
-                    controller: value.congestion_control,
-                    initial_window: value.initial_window.unwrap_or(1048576),
-                },
-                initial_mtu: value.initial_mtu,
-                min_mtu: value.min_mtu,
-                gso: value.gso,
-                pmtu: value.pmtu,
-                send_window: value.send_window,
-                receive_window: value.receive_window,
-                max_idle_time: value.max_idle_time,
-            },
-            data_dir: value.data_dir,
-            ..Default::default()
-        }
+    fn from(_value: OldConfig) -> Self {
+        panic!("Old configuration format is no longer supported. Please configure V2Board authentication.")
     }
 }
 

@@ -4,17 +4,17 @@ use config::{Config, parse_config};
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{fmt::time::LocalTime, layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::{old_config::ConfigError, server::Server};
+use crate::{old_config::ConfigError, server::Server, v2board::V2BoardProvider};
 
 mod config;
 mod connection;
 mod error;
 mod io;
 mod old_config;
-mod restful;
 mod server;
 mod tls;
 mod utils;
+mod v2board;
 
 #[cfg(feature = "jemallocator")]
 use tikv_jemallocator::Jemalloc;
@@ -25,6 +25,7 @@ static GLOBAL: Jemalloc = Jemalloc;
 
 struct AppContext {
     pub cfg: Config,
+    pub v2board: Option<V2BoardProvider>,
 }
 
 #[tokio::main]
@@ -40,7 +41,13 @@ async fn main() -> eyre::Result<()> {
             process::exit(1);
         }
     };
-    let ctx = Arc::new(AppContext { cfg });
+
+    // Initialize V2Board provider (now required)
+    let provider = V2BoardProvider::new(cfg.v2board.clone().into());
+    provider.start_user_sync().await;
+    provider.start_traffic_push().await;
+
+    let ctx = Arc::new(AppContext { cfg, v2board: Some(provider) });
 
     let filter = tracing_subscriber::filter::Targets::new()
         .with_targets(vec![
