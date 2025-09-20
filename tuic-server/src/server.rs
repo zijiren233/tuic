@@ -236,9 +236,7 @@ impl Server {
             "server started, listening on {}",
             self.ep.local_addr().unwrap()
         );
-        if self.ctx.cfg.restful.is_some() {
-            tokio::spawn(crate::restful::start(self.ctx.clone()));
-        }
+        // RESTful API 已移除，所有数据由 V2Board 管理
 
         loop {
             match self.ep.accept().await {

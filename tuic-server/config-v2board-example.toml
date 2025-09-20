@@ -1,0 +1,47 @@
+log_level = "info"
+server = "[::]:443"
+
+# V2Board API Configuration (Required)
+[v2board]
+api_host = "https://your-v2board-api.com"
+api_key = "YOUR_API_KEY_HERE"
+node_id = 1
+traffic_threshold = 1024  # KB - only push traffic data when usage exceeds this threshold
+update_interval = "60s"   # How often to sync user list from V2Board API
+push_interval = "120s"    # How often to push traffic data to V2Board API
+
+# TLS Configuration
+[tls]
+self_sign = false
+certificate = "server.crt"
+private_key = "server.key"
+alpn = ["h3"]
+hostname = "your.domain.com"
+auto_ssl = false
+
+# RESTful API has been removed - all data managed by V2Board
+
+# QUIC Configuration
+[quic]
+initial_mtu = 1200
+min_mtu = 1200
+gso = true
+pmtu = true
+send_window = 16777216
+receive_window = 8388608
+max_idle_time = "30s"
+
+[quic.congestion_control]
+controller = "bbr"
+initial_window = 1048576
+
+# Other settings
+udp_relay_ipv6 = true
+zero_rtt_handshake = false
+dual_stack = true
+auth_timeout = "3s"
+task_negotiation_timeout = "3s"
+gc_interval = "10s"
+gc_lifetime = "30s"
+max_external_packet_size = 1500
+stream_timeout = "60s"

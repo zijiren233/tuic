@@ -18,8 +18,7 @@ use super::{Connection, ERROR_CODE, UdpSession};
 use crate::{
     config::OutboundRule,
     error::Error,
-    io::copy_io,
-    restful,
+    io::exchange_tcp_with_realtime_stats,
     utils::{IpMode, UdpRelayMode},
 };
 
@@ -224,9 +223,21 @@ impl Connection {
 
             stream.set_nodelay(true)?;
 
+            let uuid = self
+                .auth
+                .get()
+                .ok_or_eyre("Unexpected autherization state")?;
+
+            // 使用实时流量统计的交换函数
             // a -> b tx
             // a <- b rx
-            let (tx, rx, err) = copy_io(&mut conn, &mut stream).await;
+            let (_tx, _rx, err) = exchange_tcp_with_realtime_stats(
+                &mut conn,
+                &mut stream,
+                self.ctx.clone(),
+                uuid
+            ).await;
+
             if err.is_some() {
                 _ = conn.reset(ERROR_CODE);
             } else {
@@ -234,14 +245,11 @@ impl Connection {
             }
             _ = stream.shutdown().await;
 
-            let uuid = self
-                .auth
-                .get()
-                .ok_or_eyre("Unexpected autherization state")?;
-            restful::traffic_tx(&self.ctx, &uuid, tx);
-            restful::traffic_rx(&self.ctx, &uuid, rx);
+            // 流量已经在exchange_tcp_with_realtime_stats中实时记录了，包括最后的剩余流量
+            // 这里不需要再次记录以避免重复计算
+
             if let Some(err) = err {
-                return Err(err.into());
+                return Err(err);
             }
             eyre::Ok(())
         };
@@ -453,7 +461,11 @@ impl Connection {
                 .auth
                 .get()
                 .ok_or_eyre("Unexpected autherization state")?;
-            restful::traffic_tx(&self.ctx, &uuid, pkt.len());
+            if let Some(v2board) = &self.ctx.v2board {
+                if !v2board.log_traffic(&uuid, pkt.len() as u64, 0) {
+                    return Err(eyre!("User no longer exists").into());
+                }
+            }
             if let Some(session) = session.upgrade() {
                 session.send(pkt, socket_addr).await
             } else {
@@ -509,11 +521,12 @@ impl Connection {
             src_addr = addr_display,
         );
 
-        restful::traffic_rx(
-            &self.ctx,
-            &self.auth.get().ok_or_eyre("Unreachable")?,
-            pkt.len(),
-        );
+        let uuid = self.auth.get().ok_or_eyre("Unreachable")?;
+        if let Some(v2board) = &self.ctx.v2board {
+            if !v2board.log_traffic(&uuid, 0, pkt.len() as u64) {
+                return Err(eyre!("User no longer exists"));
+            }
+        }
 
         let res = match self.udp_relay_mode.load().unwrap() {
             UdpRelayMode::Native => self.model.packet_native(pkt, addr, assoc_id),

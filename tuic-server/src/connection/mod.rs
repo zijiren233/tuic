@@ -12,7 +12,7 @@ use tracing::{debug, info, warn};
 use tuic_quinn::{Authenticate, Connection as Model, side};
 
 use self::{authenticated::Authenticated, udp_session::UdpSession};
-use crate::{AppContext, error::Error, restful, utils::UdpRelayMode};
+use crate::{AppContext, error::Error, utils::UdpRelayMode};
 
 mod authenticated;
 mod handle_stream;
@@ -131,16 +131,17 @@ impl Connection {
     async fn authenticate(&self, auth: &Authenticate) -> Result<(), Error> {
         if self.auth.get().is_some() {
             Err(Error::DuplicatedAuth)
-        } else if self
-            .ctx
-            .cfg
-            .users
-            .get(&auth.uuid())
-            .is_some_and(|password| auth.validate(password))
-        {
-            self.auth.set(auth.uuid()).await;
-            Ok(())
+        } else if let Some(v2board) = &self.ctx.v2board {
+            // Use V2Board authentication - this is now the primary method
+            if v2board.authenticate(&auth.uuid()) {
+                self.auth.set(auth.uuid()).await;
+                Ok(())
+            } else {
+                Err(Error::AuthFailed(auth.uuid()))
+            }
         } else {
+            // No V2Board configured - reject authentication
+            // This replaces the old user-based authentication system
             Err(Error::AuthFailed(auth.uuid()))
         }
     }
@@ -149,8 +150,8 @@ impl Connection {
         time::sleep(timeout).await;
 
         match self.auth.get() {
-            Some(uuid) => {
-                restful::client_connect(&self.ctx, &uuid, self.inner).await;
+            Some(_uuid) => {
+                // 客户端已认证，不需要额外处理
             }
             None => {
                 warn!(
@@ -168,9 +169,7 @@ impl Connection {
             time::sleep(self.ctx.cfg.gc_interval).await;
 
             if self.is_closed() {
-                if let Some(uuid) = self.auth.get() {
-                    restful::client_disconnect(&self.ctx, &uuid, self.inner).await;
-                }
+                // 连接已关闭，退出垃圾收集循环
                 break;
             }
 
