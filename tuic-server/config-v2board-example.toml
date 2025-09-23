@@ -23,7 +23,7 @@ push_interval = "120s"    # How often to push traffic data to V2Board API
 
 # TLS Configuration
 [tls]
-self_sign = false
+self_sign = true
 certificate = "server.crt"
 private_key = "server.key"
 alpn = ["h3"]
