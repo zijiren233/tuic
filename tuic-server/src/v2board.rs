@@ -78,7 +78,7 @@ impl V2BoardProvider {
     pub async fn start_user_sync(&self) {
         let provider = self.clone();
         tokio::spawn(async move {
-            info!(
+            println!(
                 "Starting user synchronization with interval: {:?}",
                 provider.config.update_interval
             );
@@ -95,7 +95,7 @@ impl V2BoardProvider {
                             if let Ok(uuid) = Uuid::parse_str(&user.uuid) {
                                 user_map.insert(uuid, user);
                             } else {
-                                warn!("Invalid UUID format: {}", user.uuid);
+                                println!("Invalid UUID format: {}", user.uuid);
                             }
                         }
 
@@ -104,13 +104,13 @@ impl V2BoardProvider {
                             *users_lock = user_map;
                         }
 
-                        debug!(
+                        println!(
                             "Updated user list with {} users",
                             provider.users.read().unwrap().len()
                         );
                     },
                     Err(e) => {
-                        error!("Failed to fetch users: {}", e);
+                        println!("Failed to fetch users: {}", e);
                     },
                 }
             }
@@ -120,7 +120,7 @@ impl V2BoardProvider {
     pub async fn start_traffic_push(&self) {
         let provider = self.clone();
         tokio::spawn(async move {
-            info!(
+            println!(
                 "Starting traffic push with interval: {:?}",
                 provider.config.push_interval
             );
@@ -131,7 +131,7 @@ impl V2BoardProvider {
                 interval.tick().await;
 
                 if let Err(e) = provider.push_traffic().await {
-                    error!("Failed to push traffic data: {}", e);
+                    println!("Failed to push traffic data: {}", e);
                 }
             }
         });
@@ -186,7 +186,7 @@ impl V2BoardProvider {
             return Err(format!("HTTP error: {}", response.status()).into());
         }
 
-        debug!(
+        println!(
             "Successfully pushed traffic data for {} users",
             push_data.len()
         );
