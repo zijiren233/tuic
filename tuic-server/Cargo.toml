@@ -14,7 +14,12 @@ repository.workspace = true
 [features]
 default = ["aws-lc-rs"]
 ring = ["rustls/ring", "rcgen/ring", "quinn/rustls-ring", "instant-acme/ring"]
-aws-lc-rs = ["rustls/aws-lc-rs", "rcgen/aws_lc_rs", "quinn/rustls-aws-lc-rs", "instant-acme/aws-lc-rs"]
+aws-lc-rs = [
+    "rustls/aws-lc-rs",
+    "rcgen/aws_lc_rs",
+    "quinn/rustls-aws-lc-rs",
+    "instant-acme/aws-lc-rs",
+]
 jemallocator = ["tikv-jemallocator"]
 
 [dependencies]
@@ -23,30 +28,56 @@ toml = "0.9"
 lexopt = { version = "0.3", default-features = false }
 socket2 = { version = "0.6", default-features = false }
 arc-swap = "1"
-uuid = { version = "1", default-features = false, features = ["serde", "std", "v4"] }
+uuid = { version = "1", default-features = false, features = [
+    "serde",
+    "std",
+    "v4",
+] }
 sha2 = "0.10"
 
 # QUIC
-quinn = { version = "0.11", default-features = false, features = ["runtime-tokio", "log"] }
+quinn = { version = "0.11", default-features = false, features = [
+    "runtime-tokio",
+    "log",
+] }
 
 # TUIC
 tuic = { path = "../tuic", default-features = false }
 tuic-quinn = { path = "../tuic-quinn", default-features = false }
-register-count = { version = "0.1.0", default-features = false, features = ["std"] }
+register-count = { version = "0.1.0", default-features = false, features = [
+    "std",
+] }
 
 # Tokio/Async
-tokio = { version = "1", default-features = false, features = ["io-util", "macros", "net", "parking_lot", "rt-multi-thread", "time", "fs", "signal"] }
+tokio = { version = "1", default-features = false, features = [
+    "io-util",
+    "macros",
+    "net",
+    "parking_lot",
+    "rt-multi-thread",
+    "time",
+    "fs",
+    "signal",
+] }
 
 # TLS
 rustls = { version = "0.23", default-features = false }
-rustls-pemfile = { version = "2", default-features = false, features = ["std"]}
-rcgen = { version = "0.14", default-features = false, features = ["crypto", "pem"] }
-instant-acme = { version = "0.8", default-features = false, features = ["hyper-rustls"] }
+rustls-pemfile = { version = "2", default-features = false, features = ["std"] }
+rcgen = { version = "0.14", default-features = false, features = [
+    "crypto",
+    "pem",
+] }
+instant-acme = { version = "0.8", default-features = false, features = [
+    "hyper-rustls",
+] }
 x509-parser = "0.18"
 
 # Serde
 bytes = { version = "1", default-features = false, features = ["std"] }
-serde = { version = "1", default-features = false, features = ["derive", "std"] }
+serde = { version = "1", default-features = false, features = [
+    "derive",
+    "std",
+] }
 serde_json = { version = "1", default-features = false, features = ["std"] }
 figment = { version = "0.10", features = ["toml"] }
 educe = { version = "0.6", default-features = false, features = ["Default"] }
@@ -55,7 +86,13 @@ humantime-serde = "1"
 # Logging
 time = { version = "0.3", features = ["macros", "local-offset"] }
 humantime = { version = "2", default-features = false }
-tracing-subscriber = { version = "0.3", default-features = false, features = ["tracing-log", "std", "local-time","fmt", "ansi"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = [
+    "tracing-log",
+    "std",
+    "local-time",
+    "fmt",
+    "ansi",
+] }
 tracing = "0.1"
 
 # Error handling
@@ -64,12 +101,14 @@ eyre = { version = "0.6" }
 
 # Web
 axum = { version = "0.8", features = ["tokio"] }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
 
 tikv-jemallocator = { version = "0.6", optional = true }
 
 [dev-dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"]}
+reqwest = { version = "0.12", default-features = false, features = [
+    "rustls-tls",
+] }
 tempfile = "3"
 tokio = { version = "1", features = ["full", "test-util"] }
 x509-parser = "0.18"
