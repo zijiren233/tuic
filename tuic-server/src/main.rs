@@ -38,6 +38,9 @@ struct AppContext {
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    #[cfg(feature = "aws-lc-rs")]
+    let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+
     let cfg = match parse_config(lexopt::Parser::from_env()).await {
         Ok(cfg) => cfg,
         Err(ConfigError::Version(msg) | ConfigError::Help(msg)) => {
