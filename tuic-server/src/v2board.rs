@@ -148,7 +148,7 @@ impl V2BoardProvider {
                 let total_kb = total_bytes / 1024;
 
                 if total_kb >= self.config.traffic_threshold {
-                    push_data.insert(user_id.to_string(), [stats.tx / 1024, stats.rx / 1024]);
+                    push_data.insert(user_id.to_string(), [stats.tx, stats.rx]);
                 }
             }
 
@@ -179,8 +179,8 @@ impl V2BoardProvider {
                     let stats = stats_lock
                         .entry(id)
                         .or_insert(TrafficStats { tx: 0, rx: 0 });
-                    stats.tx += traffic[0] * 1024;
-                    stats.rx += traffic[1] * 1024;
+                    stats.tx += traffic[0];
+                    stats.rx += traffic[1];
                 }
             }
             return Err(format!("HTTP error: {}", response.status()).into());
