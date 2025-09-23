@@ -101,7 +101,11 @@ eyre = { version = "0.6" }
 
 # Web
 axum = { version = "0.8", features = ["tokio"] }
-reqwest = { version = "0.12", default-features = false, features = ["json"] }
+reqwest = { version = "0.12", default-features = false, features = [
+    "default-tls",
+    "json",
+    "gzip",
+] }
 
 tikv-jemallocator = { version = "0.6", optional = true }
 
