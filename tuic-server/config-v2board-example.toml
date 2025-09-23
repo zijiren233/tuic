@@ -1,6 +1,17 @@
 log_level = "info"
 server = "[::]:443"
 
+# Other settings
+udp_relay_ipv6 = true
+zero_rtt_handshake = false
+dual_stack = true
+auth_timeout = "3s"
+task_negotiation_timeout = "3s"
+gc_interval = "10s"
+gc_lifetime = "30s"
+max_external_packet_size = 1500
+stream_timeout = "60s"
+
 # V2Board API Configuration (Required)
 [v2board]
 api_host = "https://your-v2board-api.com"
@@ -19,8 +30,6 @@ alpn = ["h3"]
 hostname = "your.domain.com"
 auto_ssl = false
 
-# RESTful API has been removed - all data managed by V2Board
-
 # QUIC Configuration
 [quic]
 initial_mtu = 1200
@@ -34,14 +43,3 @@ max_idle_time = "30s"
 [quic.congestion_control]
 controller = "bbr"
 initial_window = 1048576
-
-# Other settings
-udp_relay_ipv6 = true
-zero_rtt_handshake = false
-dual_stack = true
-auth_timeout = "3s"
-task_negotiation_timeout = "3s"
-gc_interval = "10s"
-gc_lifetime = "30s"
-max_external_packet_size = 1500
-stream_timeout = "60s"
