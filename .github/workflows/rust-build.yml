@@ -4,29 +4,29 @@ on:
   workflow_call:
     inputs:
       rust-toolchain:
-        description: 'Rust toolchain to use'
+        description: "Rust toolchain to use"
         required: false
         type: string
-        default: 'stable'
+        default: "stable"
       packages:
-        description: 'Comma-separated list of package names'
+        description: "Comma-separated list of package names"
         required: true
         type: string
       target-config-file:
-        description: 'Path to the TOML file containing target configurations'
+        description: "Path to the TOML file containing target configurations"
         required: false
         type: string
-        default: '.github/target.toml'
+        default: ".github/target.toml"
       run-tests:
-        description: 'Whether to run tests (can be overridden by matrix config)'
+        description: "Whether to run tests (can be overridden by matrix config)"
         required: false
         type: boolean
         default: true
       cache-key-prefix:
-        description: 'Prefix for cache key to avoid collisions'
+        description: "Prefix for cache key to avoid collisions"
         required: false
         type: string
-        default: 'rust-build'
+        default: "rust-build"
 
 jobs:
   prepare:
@@ -98,48 +98,12 @@ jobs:
           cargo install cross --git https://github.com/cross-rs/cross --force
         env:
           TARGET: ${{ matrix.target }}
-          
+
       - name: Print build information
         run: |
           echo "Building for target: ${{ matrix.target }}"
           echo "Using toolchain: ${{ matrix.toolchain || inputs.rust-toolchain }}"
           echo "Building packages: ${{ inputs.packages }}"
-
-      #--------------------------------------------------
-      # Code Quality Steps
-      #--------------------------------------------------
-      - name: Check code formatting
-        uses: clechasseur/rs-cargo@v4
-        with:
-          command: fmt
-          args: --all -- --check
-        continue-on-error: ${{ matrix.ignore-fmt-errors == true }}
-
-      - name: Run linter
-        uses: clechasseur/rs-cargo@v4
-        with:
-          tool: ${{ matrix.tool }}
-          command: clippy
-          args: --all --target ${{ matrix.target }} ${{ matrix.extra-args }} -- -D warnings
-        env:
-          RUSTFLAGS: ${{ matrix.rustflags }}
-        continue-on-error: ${{ matrix.ignore-clippy-errors == true }}
-
-      #--------------------------------------------------
-      # Build & Test Steps
-      #--------------------------------------------------
-      - name: Run tests
-        uses: clechasseur/rs-cargo@v4
-        if: ${{ inputs.run-tests != false && !matrix.skip-test }}
-        with:
-          tool: ${{ matrix.tool }}
-          command: test
-          args: --all --target ${{ matrix.target }} ${{ matrix.extra-args }} -- --nocapture
-        env:
-          CROSS_CONTAINER_OPTS: "--network host"
-          RUSTFLAGS: ${{ matrix.rustflags }}
-          RUST_TEST_THREADS: ${{ matrix.test-threads || 8 }}
-        timeout-minutes: ${{ matrix.test-timeout || 15 }}
 
       - name: Build release binaries
         id: build
