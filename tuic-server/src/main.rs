@@ -4,11 +4,9 @@ use std::{
     sync::{Arc, atomic::AtomicUsize},
 };
 
-use chashmap::CHashMap;
 use config::{Config, parse_config};
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{fmt::time::LocalTime, layer::SubscriberExt, util::SubscriberInitExt};
-use uuid::Uuid;
 
 use crate::{old_config::ConfigError, server::Server, v2board::V2BoardProvider};
 
