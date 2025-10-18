@@ -74,49 +74,24 @@ jobs:
           submodules: true
           fetch-depth: 1
 
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: ${{ inputs.cache-key-prefix }}-${{ matrix.release-name || matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
-          cache-directories: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain || inputs.rust-toolchain }}
           target: ${{ matrix.target }}
-          components: ${{ matrix.components || 'rustfmt, clippy' }}
-
-      - name: Install cross-compilation tools
-        if: matrix.tool == 'cross'
-        run: |
-          rustup target add ${TARGET}
-          cargo install cross --git https://github.com/cross-rs/cross --force
-        env:
-          TARGET: ${{ matrix.target }}
-
-      - name: Print build information
-        run: |
-          echo "Building for target: ${{ matrix.target }}"
-          echo "Using toolchain: ${{ matrix.toolchain || inputs.rust-toolchain }}"
-          echo "Building packages: ${{ inputs.packages }}"
 
       - name: Build release binaries
         id: build
-        uses: clechasseur/rs-cargo@v4
+        uses: zijiren233/rust-build-action@v1
         with:
-          tool: ${{ matrix.tool }}
           command: build
-          args: --workspace --release --target ${{ matrix.target }} ${{ matrix.extra-args }}
+          toolchain: ${{ matrix.toolchain || inputs.rust-toolchain }}
+          workspace: true
+          release: true
+          target: ${{ matrix.target }}
+          args: ${{ matrix.extra-args }}
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
-          CARGO_PROFILE_RELEASE_LTO: ${{ matrix.lto || true }}
-          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: ${{ matrix.codegen-units || 1 }}
-          CARGO_PROFILE_RELEASE_STRIP: ${{ matrix.strip || true }}
 
       #--------------------------------------------------
       # Artifact Steps
